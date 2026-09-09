@@ -41,9 +41,7 @@
   --p-on:#0c1712;--p-on2:#1a2f24;--p-on3:#22402f;--p-on4:#2e5240;
 }
 :root[data-palette="rubin"]{
-  --p-bg:#0c0809;--p-bg-deep:#0a0708;--p-bg-soft:#100b0c;--p-surface:#170f11;--p-surface2:#1f1518;--p-card-b:#120c0d;
-  --p-ivory:#f2e5e7;--p-soft:#c1a9ad;--p-muted:#9c8286;--p-faint:#776064;
-  --p-paper:#f2e5e7;--p-on-paper:#170f11;--p-paper-soft:#8a6e73;
+  /* Рубин — только акцент: база (фон/поверхности/бумага) остаётся исходной тёплой, как у золота */
   --p-brand:#c97b84;--p-brand-soft:#f0c7cd;--p-brand-deep:#8f4a55;--p-brand-hi:#fadde1;
   --p-brand-mid:#dda3ab;--p-brand-mid2:#b26470;--p-brand-mid3:#a05560;--p-brand-mid4:#6e3640;--p-brand-mid5:#5a2b34;
   --p-rgb:201,123,132;--p-rgb2:178,100,112;--p-rgbs:240,199,205;
@@ -64,6 +62,8 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{background:var(--k-bg);color:var(--k-ivory);font-family:'Manrope',system-ui,-apple-system,sans-serif;overflow-x:hidden;min-height:100vh;line-height:1.5}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+/* тач: без задержки двойного тапа на интерактиве */
+a,button,[data-hover]{touch-action:manipulation}
 ::selection{background:rgba(var(--p-rgb),.35);color:#fff}
 ::-webkit-scrollbar{width:10px}
 ::-webkit-scrollbar-track{background:var(--p-bg)}
@@ -76,14 +76,12 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:60;opa
   background-repeat:repeat}
 /* ============ КУРСОР ============ */
 @media (pointer:fine){body,a,button,[data-hover]{cursor:none}}
-.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:95;border-radius:9999px;transform:translate(-50%,-50%);display:none}
+/* Курсор: размеры фиксированы, состояния — scale()/opacity через transform (только композитор; width/height-анимации давали layout+paint каждый кадр) */
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:95;border-radius:9999px;opacity:0;will-change:transform;display:none}
 @media (pointer:fine){.cursor-dot,.cursor-ring{display:block}}
-.cursor-dot{width:7px;height:7px;background:var(--p-brand-soft);transition:width .18s,height .18s,opacity .18s}
-.cursor-ring{width:30px;height:30px;border:1px solid var(--p-brand);opacity:.5;transition:width .3s,height .3s,opacity .3s,border-radius .3s,transform .3s}
-body.cur-hot .cursor-dot{width:4px;height:4px}
-body.cur-hot .cursor-ring{width:52px;height:52px;opacity:.9;border-radius:30% 70% 60% 40%/50% 40% 60% 50%;transform:translate(-50%,-50%) rotate(45deg)}
-body.cur-down .cursor-dot{opacity:.5}
-body.cur-down .cursor-ring{width:20px;height:20px}
+.cursor-dot{width:7px;height:7px;background:var(--p-brand-soft)}
+.cursor-ring{width:30px;height:30px;border:1px solid var(--p-brand);transition:border-radius .25s ease}
+body.cur-hot .cursor-ring{border-radius:30% 70% 60% 40%/50% 40% 60% 50%}
 /* ============ ПРЕЛОАДЕР ============ */
 #preloader{position:fixed;inset:0;z-index:100;background:var(--p-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .45s cubic-bezier(.22,1,.36,1),transform .45s cubic-bezier(.22,1,.36,1)}
 #preloader.done{opacity:0;transform:scale(1.06) rotate(-1deg);pointer-events:none}
@@ -106,8 +104,8 @@ body.cur-down .cursor-ring{width:20px;height:20px}
 .coin-face--back{transform:rotateY(180deg)}
 .coin-letter{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;color:var(--p-on3);text-shadow:0 1px 0 rgba(255,255,255,.5),0 -1px 1px rgba(0,0,0,.35);line-height:1}
 .coin-caption{font-weight:700;letter-spacing:.32em;color:var(--p-on4);text-shadow:0 1px 0 rgba(255,255,255,.35)}
-.coin-float{animation:coinFloat 5.5s ease-in-out infinite}
-@keyframes coinFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+.coin-float{animation:coinFloat 5.5s ease-in-out infinite;will-change:transform}
+@keyframes coinFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-16px,0)}}
 /* ============ ШАПКА ============ */
 #pbar{position:fixed;top:0;left:0;right:0;z-index:90;height:2px;transform-origin:left;transform:scaleX(0);
   background:linear-gradient(90deg,var(--p-brand-deep),var(--p-brand-soft),var(--p-brand-deep))}
@@ -123,12 +121,12 @@ body.cur-down .cursor-ring{width:20px;height:20px}
 .logo-city{margin-top:4px;font-size:9px;text-transform:uppercase;letter-spacing:.4em;color:var(--k-muted);line-height:1}
 .hdr nav{display:flex;align-items:center;gap:36px}
 .hdr nav a{position:relative;white-space:nowrap;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.28em;color:var(--k-soft);transition:color .3s}
-.hdr nav a::after{content:"";position:absolute;bottom:-6px;left:0;height:1px;width:0;background:var(--p-brand);transition:width .5s}
+.hdr nav a::after{content:"";position:absolute;bottom:-6px;left:0;height:1px;width:100%;background:var(--p-brand);transform:scaleX(0);transform-origin:left;transition:transform .5s}
 .hdr nav a:hover{color:var(--p-brand-soft)}
-.hdr nav a:hover::after{width:100%}
+.hdr nav a:hover::after{transform:scaleX(1)}
 .hdr-right{display:flex;align-items:center;gap:16px;flex-shrink:0}
 .hdr-domain{font-size:11px;letter-spacing:.2em;color:var(--k-muted);white-space:nowrap}
-.cta-pill{display:flex;align-items:center;gap:8px;white-space:nowrap;border:1px solid rgba(var(--p-rgb),.4);background:rgba(var(--p-rgb),.05);border-radius:999px;padding:8px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.22em;color:var(--p-brand-soft);transition:all .5s}
+.cta-pill{display:flex;align-items:center;gap:8px;white-space:nowrap;border:1px solid rgba(var(--p-rgb),.4);background:rgba(var(--p-rgb),.05);border-radius:999px;padding:8px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.22em;color:var(--p-brand-soft);transition:background-color .5s,color .5s,box-shadow .5s}
 .cta-pill:hover{background:var(--p-brand);color:var(--p-on);box-shadow:0 0 30px rgba(var(--p-rgb),.35)}
 .cta-pill svg{width:14px;height:14px;transition:transform .5s}
 .cta-pill:hover svg{transform:rotate(-12deg)}
@@ -166,7 +164,7 @@ body.cur-down .cursor-ring{width:20px;height:20px}
 .btn-gold:hover svg{transform:rotate(-12deg)}
 .btn-gold::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transform:translateX(-100%);transition:transform .7s}
 .btn-gold:hover::after{transform:translateX(100%)}
-.btn-ghost{display:flex;gap:8px;transform:rotate(1deg);border:1px solid rgba(var(--p-rgb),.35);border-radius:8px 20px 6px 24px;padding:16px 32px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.25em;color:var(--p-brand-soft);transition:all .5s}
+.btn-ghost{display:flex;gap:8px;transform:rotate(1deg);border:1px solid rgba(var(--p-rgb),.35);border-radius:8px 20px 6px 24px;padding:16px 32px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.25em;color:var(--p-brand-soft);transition:transform .5s,border-color .5s,background-color .5s}
 .btn-ghost:hover{transform:rotate(0);border-color:var(--p-brand-soft);background:rgba(var(--p-rgb),.1)}
 .hero-sticker{display:none;margin-left:auto;align-self:center;transform:translateY(-8px) rotate(6deg);border:1.5px solid currentColor;border-radius:999px 999px 999px 4px;padding:7px 18px;font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--k-muted)}
 @media (min-width:768px){.hero-annot{display:flex}.hero-sub,.hero-btns{margin-left:192px}}
@@ -263,12 +261,12 @@ body.cur-down .cursor-ring{width:20px;height:20px}
 @media (min-width:768px){.mq-a{padding:20px 0}}
 .mq-b{background:var(--p-brand);padding:10px 0;box-shadow:0 18px 50px rgba(0,0,0,.5)}
 @media (min-width:768px){.mq-b{padding:12px 0}}
-.mq-track{display:flex;flex-shrink:0;align-items:center;gap:48px;padding-right:48px;animation:mqScroll 32s linear infinite;will-change:transform}
+.mq-track{display:flex;flex-shrink:0;align-items:center;gap:48px;padding-right:48px;animation:mqScroll 32s linear infinite;will-change:transform;backface-visibility:hidden}
 .mq-track.rev{animation-direction:reverse}
 @media (min-width:768px){.mq-track{gap:64px;padding-right:64px}}
 .mq:hover .mq-track{animation-play-state:paused}
-@keyframes mqScroll{to{transform:translateX(calc(-100% - 48px))}}
-@media (min-width:768px){@keyframes mqScroll{to{transform:translateX(calc(-100% - 64px))}}}
+@keyframes mqScroll{to{transform:translate3d(calc(-100% - 48px),0,0)}}
+@media (min-width:768px){@keyframes mqScroll{to{transform:translate3d(calc(-100% - 64px),0,0)}}}
 .mq-item{display:flex;align-items:center;gap:32px;white-space:nowrap}
 @media (min-width:768px){.mq-item{gap:48px}}
 .mq-item .t-serif{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:24px;color:color-mix(in srgb,var(--p-ivory) 85%,transparent)}
@@ -299,7 +297,10 @@ body.cur-down .cursor-ring{width:20px;height:20px}
 .paper-pill{margin-left:auto;display:inline-block;transform:rotate(3deg);border:1px solid color-mix(in srgb,var(--p-brand-deep) 40%,transparent);border-radius:999px;padding:6px 16px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3em;color:var(--p-brand-deep)}
 .manifesto-text{position:relative;margin-top:48px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:clamp(27px,4.2vw,54px);line-height:1.3}
 .manifesto-text .ln{display:block}
-.manifesto-text .w{display:inline-block;opacity:.1;transform:translateY(8px);will-change:opacity,transform}
+/* слова: один IO-класс + CSS-стаггер (--wi проставлен в разметке);
+   JS по скроллу больше не пересчитывает 30 слов каждый кадр */
+.manifesto-text .w{display:inline-block;opacity:.1;transform:translateY(8px);transition:opacity .5s cubic-bezier(.22,1,.36,1),transform .5s cubic-bezier(.22,1,.36,1);transition-delay:calc(var(--wi,0)*.03s)}
+.manifesto-text.in .w{opacity:1;transform:translateY(0)}
 .manifesto-text .mr{margin-right:.28em}
 .marker{display:inline-block;padding:0 .35em;background:linear-gradient(100deg,rgba(var(--p-rgb),.95),rgba(var(--p-rgb2),.95));color:var(--p-on);border-radius:6px 3px 8px 4px}
 .squiggle{display:block;margin-top:40px;color:var(--p-brand-deep)}
@@ -317,8 +318,8 @@ body.cur-down .cursor-ring{width:20px;height:20px}
 .blob-cloud{max-width:1024px;margin:64px auto 0;display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:24px}
 @media (min-width:768px){.blob-cloud{gap:8px}}
 .blob-slot{display:flex;align-items:center;justify-content:center}
-.blob{display:flex;align-items:center;justify-content:center;text-align:center;user-select:none;animation:blobBreath 9s ease-in-out infinite alternate;transition:transform .6s cubic-bezier(.22,1,.36,1),background-color .6s,color .6s;will-change:transform}
-@keyframes blobBreath{0%{transform:scale(1) rotate(0)}100%{transform:scale(1.045) rotate(2deg)}}
+.blob{display:flex;align-items:center;justify-content:center;text-align:center;user-select:none;animation:blobBreath 9s ease-in-out infinite alternate;transition:transform .6s cubic-bezier(.22,1,.36,1),background-color .6s,color .6s;will-change:transform;backface-visibility:hidden}
+@keyframes blobBreath{0%{transform:translateZ(0) scale(1) rotate(0)}100%{transform:translateZ(0) scale(1.045) rotate(2deg)}}
 .blob:hover{animation-play-state:paused;transform:scale(1.08) rotate(-3deg)}
 .blob.gold{background:linear-gradient(135deg,var(--p-brand-soft),var(--p-brand),var(--p-brand-deep));color:var(--p-on);box-shadow:0 20px 60px rgba(var(--p-rgb),.25)}
 .blob.dark{border:1px solid rgba(var(--p-rgb),.3);background:var(--p-surface);color:var(--p-brand-soft)}
@@ -417,14 +418,15 @@ footer{position:relative;margin-top:auto;overflow:hidden;border-top:1px solid rg
 .go .hrv{opacity:1;transform:none}
 .hrv{opacity:0;transform:translateY(var(--hy,24px)) rotate(var(--hr,0deg));transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1);transition-delay:var(--d,0s)}
 @media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .coin,.coin-float,.mq-track,.blob,.spin-slow,.star,.finale-star{animation:none!important}
   html{scroll-behavior:auto}
   .rv,.hrv{opacity:1!important;transform:none!important}
-  .manifesto-text .w{opacity:1!important;transform:none!important}
+  .manifesto-text .w{opacity:1!important;transform:none!important;transition:none!important}
   @media (pointer:fine){body,a,button,[data-hover]{cursor:auto!important}}
   .cursor-dot,.cursor-ring{display:none!important}
 }
-.spin-slow{animation:spinSlow 20s linear infinite;transform-origin:center}
+.spin-slow{animation:spinSlow 20s linear infinite;transform-origin:center;will-change:transform;backface-visibility:hidden}
 @keyframes spinSlow{to{transform:rotate(360deg)}}
 </style>
 
@@ -614,11 +616,11 @@ footer{position:relative;margin-top:auto;overflow:hidden;border-top:1px solid rg
       <span class="paper-pill">без купюр</span>
     </div>
     <div class="manifesto-text" id="mtext">
-      <span class="ln"><span class="w"><span class="mr">Мы</span></span><span class="w"><span class="mr">открываем</span></span><span class="w"><span class="mr">лавку</span></span><span class="w"><span class="marker mr">мелочей</span></span><span class="w"><span class="mr">в</span></span><span class="w"><span class="mr">Петербурге.</span></span></span>
-      <span class="ln"><span class="w"><span class="mr">Из</span></span><span class="w"><span class="mr">тех,</span></span><span class="w"><span class="mr">что</span></span><span class="w"><span class="mr">мир</span></span><span class="w"><span class="mr">не</span></span><span class="w"><span class="mr">переделывают</span></span><span class="w"><span class="mr">—</span></span></span>
-      <span class="ln"><span class="w"><span class="mr">но</span></span><span class="w"><span class="mr">меняют</span></span><span class="w"><span class="marker mr">настроение,</span></span><span class="w"><span class="mr">день</span></span><span class="w"><span class="mr">и</span></span><span class="w"><span class="mr">даже</span></span><span class="w"><span class="mr">походку.</span></span></span>
-      <span class="ln"><span class="w"><span class="mr">Закупаем</span></span><span class="w"><span class="mr">руками,</span></span><span class="w"><span class="mr">продаём</span></span><span class="w"><span class="mr">с</span></span><span class="w"><span class="mr">характером</span></span><span class="w"><span class="mr">—</span></span></span>
-      <span class="ln"><span class="w"><span class="mr">и</span></span><span class="w"><span class="mr">платим</span></span><span class="w"><span class="mr">вовремя,</span></span><span class="w"><span class="marker mr">Честно.</span></span></span>
+      <span class="ln"><span class="w" style="--wi:0"><span class="mr">Мы</span></span><span class="w" style="--wi:1"><span class="mr">открываем</span></span><span class="w" style="--wi:2"><span class="mr">лавку</span></span><span class="w" style="--wi:3"><span class="marker mr">мелочей</span></span><span class="w" style="--wi:4"><span class="mr">в</span></span><span class="w" style="--wi:5"><span class="mr">Петербурге.</span></span></span>
+      <span class="ln"><span class="w" style="--wi:6"><span class="mr">Из</span></span><span class="w" style="--wi:7"><span class="mr">тех,</span></span><span class="w" style="--wi:8"><span class="mr">что</span></span><span class="w" style="--wi:9"><span class="mr">мир</span></span><span class="w" style="--wi:10"><span class="mr">не</span></span><span class="w" style="--wi:11"><span class="mr">переделывают</span></span><span class="w" style="--wi:12"><span class="mr">—</span></span></span>
+      <span class="ln"><span class="w" style="--wi:13"><span class="mr">но</span></span><span class="w" style="--wi:14"><span class="mr">меняют</span></span><span class="w" style="--wi:15"><span class="marker mr">настроение,</span></span><span class="w" style="--wi:16"><span class="mr">день</span></span><span class="w" style="--wi:17"><span class="mr">и</span></span><span class="w" style="--wi:18"><span class="mr">даже</span></span><span class="w" style="--wi:19"><span class="mr">походку.</span></span></span>
+      <span class="ln"><span class="w" style="--wi:20"><span class="mr">Закупаем</span></span><span class="w" style="--wi:21"><span class="mr">руками,</span></span><span class="w" style="--wi:22"><span class="mr">продаём</span></span><span class="w" style="--wi:23"><span class="mr">с</span></span><span class="w" style="--wi:24"><span class="mr">характером</span></span><span class="w" style="--wi:25"><span class="mr">—</span></span></span>
+      <span class="ln"><span class="w" style="--wi:26"><span class="mr">и</span></span><span class="w" style="--wi:27"><span class="mr">платим</span></span><span class="w" style="--wi:28"><span class="mr">вовремя,</span></span><span class="w" style="--wi:29"><span class="marker mr">Честно.</span></span></span>
     </div>
     <svg class="squiggle rv" width="220" height="26" viewBox="0 0 220 26" fill="none" aria-hidden="true">
       <path d="M4 18 C 40 4, 70 26, 110 12 S 190 4, 216 14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
@@ -648,13 +650,13 @@ footer{position:relative;margin-top:auto;overflow:hidden;border-top:1px solid rg
     <span class="text-stroke o">радость прячется в мелочах</span>
   </h2>
   <div class="blob-cloud">
-    <div class="blob-slot rv rv-rot" style="transform:translateY(0px);--d:0s;--rr:-20deg;--rs:.4;--rf:-5deg"><div class="blob gold" data-hover style="width:min(210px,42vw);height:min(210px,42vw);border-radius:58% 42% 55% 45% / 52% 60% 40% 48%;animation-duration:8s;animation-delay:0s"><span>МЕЛОЧИ</span></div></div>
-    <div class="blob-slot rv rv-rot" style="transform:translateY(46px);--d:.09s;--rr:16deg;--rs:.4;--rf:4deg"><div class="blob dark" data-hover style="width:min(170px,42vw);height:min(170px,42vw);border-radius:45% 55% 62% 38% / 58% 42% 58% 42%;animation-duration:11s;animation-delay:-2.3s"><span>штучки</span></div></div>
-    <div class="blob-slot rv rv-rot" style="transform:translateY(-18px);--d:.18s;--rr:-8deg;--rs:.4;--rf:-2deg"><div class="blob dark" data-hover style="width:min(190px,42vw);height:min(190px,42vw);border-radius:62% 38% 42% 58% / 42% 58% 38% 62%;animation-duration:9.5s;animation-delay:-4.6s"><span>ВЕЩИЦЫ</span></div></div>
-    <div class="blob-slot rv rv-rot" style="transform:translateY(30px);--d:.27s;--rr:12deg;--rs:.4;--rf:3deg"><div class="blob dark" data-hover style="width:min(230px,42vw);height:min(230px,42vw);border-radius:55% 45% 48% 52% / 60% 42% 58% 40%;animation-duration:12s;animation-delay:-6.9s"><span>безделушки</span></div></div>
-    <div class="blob-slot rv rv-rot" style="transform:translateY(-8px);--d:.36s;--rr:-24deg;--rs:.4;--rf:-6deg"><div class="blob gold" data-hover style="width:min(165px,42vw);height:min(165px,42vw);border-radius:48% 52% 58% 42% / 45% 55% 62% 38%;animation-duration:8.6s;animation-delay:-9.2s"><span>ПОБРЯКУШКИ</span></div></div>
-    <div class="blob-slot rv rv-rot" style="transform:translateY(52px);--d:.45s;--rr:8deg;--rs:.4;--rf:2deg"><div class="blob dark" data-hover style="width:min(175px,42vw);height:min(175px,42vw);border-radius:60% 40% 52% 48% / 55% 45% 42% 58%;animation-duration:10.5s;animation-delay:-11.5s"><span>и всякое</span></div></div>
-    <div class="blob-slot rv rv-rot" style="transform:translateY(-30px);--d:.54s;--rr:-12deg;--rs:.4;--rf:-3deg"><div class="blob gold" data-hover style="width:min(205px,42vw);height:min(205px,42vw);border-radius:42% 58% 45% 55% / 48% 52% 60% 40%;animation-duration:9s;animation-delay:-13.8s"><span>РАЗНОЕ</span></div></div>
+    <div class="blob-slot rv rv-rot" style="margin-top:0px;--d:0s;--rr:-20deg;--rs:.4;--rf:-5deg"><div class="blob gold" data-hover style="width:min(210px,42vw);height:min(210px,42vw);border-radius:58% 42% 55% 45% / 52% 60% 40% 48%;animation-duration:8s;animation-delay:0s"><span>МЕЛОЧИ</span></div></div>
+    <div class="blob-slot rv rv-rot" style="margin-top:46px;--d:.09s;--rr:16deg;--rs:.4;--rf:4deg"><div class="blob dark" data-hover style="width:min(170px,42vw);height:min(170px,42vw);border-radius:45% 55% 62% 38% / 58% 42% 58% 42%;animation-duration:11s;animation-delay:-2.3s"><span>штучки</span></div></div>
+    <div class="blob-slot rv rv-rot" style="margin-top:-18px;--d:.18s;--rr:-8deg;--rs:.4;--rf:-2deg"><div class="blob dark" data-hover style="width:min(190px,42vw);height:min(190px,42vw);border-radius:62% 38% 42% 58% / 42% 58% 38% 62%;animation-duration:9.5s;animation-delay:-4.6s"><span>ВЕЩИЦЫ</span></div></div>
+    <div class="blob-slot rv rv-rot" style="margin-top:30px;--d:.27s;--rr:12deg;--rs:.4;--rf:3deg"><div class="blob dark" data-hover style="width:min(230px,42vw);height:min(230px,42vw);border-radius:55% 45% 48% 52% / 60% 42% 58% 40%;animation-duration:12s;animation-delay:-6.9s"><span>безделушки</span></div></div>
+    <div class="blob-slot rv rv-rot" style="margin-top:-8px;--d:.36s;--rr:-24deg;--rs:.4;--rf:-6deg"><div class="blob gold" data-hover style="width:min(165px,42vw);height:min(165px,42vw);border-radius:48% 52% 58% 42% / 45% 55% 62% 38%;animation-duration:8.6s;animation-delay:-9.2s"><span>ПОБРЯКУШКИ</span></div></div>
+    <div class="blob-slot rv rv-rot" style="margin-top:52px;--d:.45s;--rr:8deg;--rs:.4;--rf:2deg"><div class="blob dark" data-hover style="width:min(175px,42vw);height:min(175px,42vw);border-radius:60% 40% 52% 48% / 55% 45% 42% 58%;animation-duration:10.5s;animation-delay:-11.5s"><span>и всякое</span></div></div>
+    <div class="blob-slot rv rv-rot" style="margin-top:-30px;--d:.54s;--rr:-12deg;--rs:.4;--rf:-3deg"><div class="blob gold" data-hover style="width:min(205px,42vw);height:min(205px,42vw);border-radius:42% 58% 45% 55% / 48% 52% 60% 40%;animation-duration:9s;animation-delay:-13.8s"><span>РАЗНОЕ</span></div></div>
   </div>
   <div class="blobs-note">
     <span class="rv">и это ещё не все слова <b class="st" aria-hidden="true">✦</b></span>
@@ -817,45 +819,79 @@ footer{position:relative;margin-top:auto;overflow:hidden;border-top:1px solid rg
   } catch (e) {}
   applyPalette(saved, false);
 
-  /* ---------- Кастомный курсор (только точные указатели) ---------- */
+  /* ---------- Кастомный курсор (только точные указатели) ----------
+     Размеры фиксированы, состояния — scale()/opacity (только композитор).
+     Догон кольца — кадрово-независимый lerp; цикл спит, когда всё сошлось.
+     «Горячесть» — pointerover (один closest на смену цели). */
   var fineMq = window.matchMedia("(pointer: fine)");
-  if (fineMq.matches) {
+  var reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  if (fineMq.matches && !reduceMq.matches) {
     var dot = document.querySelector(".cursor-dot");
     var ring = document.querySelector(".cursor-ring");
-    var mx = -100, my = -100, rx = -100, ry = -100;
+    var mx = -100, my = -100, rx = mx, ry = my;
+    var sc = 1, tsc = 1, op = 0, tOp = 0;
+    var hot = false, seen = false, curRaf = 0, curLast = 0;
+    var RING_HOT = 52 / 30, RING_DOWN = 20 / 30;
+
+    var renderCursor = function () {
+      dot.style.transform = "translate3d(" + mx + "px," + my + "px,0) translate(-50%,-50%)";
+      ring.style.transform = "translate3d(" + rx + "px," + ry + "px,0) translate(-50%,-50%)" + (hot ? " rotate(45deg)" : "") + " scale(" + sc.toFixed(4) + ")";
+      dot.style.opacity = op.toFixed(3);
+      ring.style.opacity = ((hot ? 0.9 : 0.5) * op).toFixed(3);
+    };
+    var cursorTick = function (now) {
+      var dt = Math.min(64, now - curLast);
+      curLast = now;
+      var k = 1 - Math.exp(-dt / 70);
+      rx += (mx - rx) * k; ry += (my - ry) * k;
+      sc += (tsc - sc) * k; op += (tOp - op) * k;
+      renderCursor();
+      if (Math.abs(mx - rx) < .1 && Math.abs(my - ry) < .1 && Math.abs(tsc - sc) < .001 && Math.abs(tOp - op) < .001) { curRaf = 0; return; }
+      curRaf = requestAnimationFrame(cursorTick);
+    };
+    var wakeCursor = function () {
+      if (!curRaf) { curLast = performance.now(); curRaf = requestAnimationFrame(cursorTick); }
+    };
     document.addEventListener("mousemove", function (e) {
       mx = e.clientX; my = e.clientY;
-      var t = e.target;
-      body.classList.toggle("cur-hot", !!(t && t.closest && t.closest("a, button, [data-hover]")));
+      if (!seen) { seen = true; rx = mx; ry = my; tOp = 1; }
+      wakeCursor();
     }, { passive: true });
-    document.addEventListener("mousedown", function () { body.classList.add("cur-down"); });
-    document.addEventListener("mouseup", function () { body.classList.remove("cur-down"); });
-    (function loop() {
-      rx += (mx - rx) * 0.18;
-      ry += (my - ry) * 0.18;
-      dot.style.transform = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
-      ring.style.transform = "translate(" + rx + "px," + ry + "px) translate(-50%,-50%)" + (body.classList.contains("cur-hot") ? " rotate(45deg)" : "");
-      requestAnimationFrame(loop);
-    })();
+    document.addEventListener("pointerover", function (e) {
+      var t = e.target;
+      var h = !!(t && t.closest && t.closest("a, button, [data-hover]"));
+      if (h !== hot) { hot = h; tsc = h ? RING_HOT : 1; ring.classList.toggle("cur-hot-shape", h); wakeCursor(); }
+    }, { passive: true });
+    document.addEventListener("mousedown", function () { tsc = RING_DOWN; wakeCursor(); }, { passive: true });
+    document.addEventListener("mouseup", function () { tsc = hot ? RING_HOT : 1; wakeCursor(); }, { passive: true });
+    docEl.addEventListener("mouseleave", function () { tOp = 0; wakeCursor(); });
+    docEl.addEventListener("mouseenter", function () { if (seen) { tOp = 1; wakeCursor(); } });
   }
 
-  /* ---------- Свечение за курсором в hero ---------- */
+  /* ---------- Свечение за курсором в hero ----------
+     pageX/pageY вместо getBoundingClientRect: hero в самом верху
+     страницы, координаты документа = координаты секции (ноль читалок layout) */
   var hero = document.getElementById("top");
   var glow = document.getElementById("heroGlow");
   if (hero && glow && fineMq.matches) {
     hero.addEventListener("mousemove", function (e) {
-      var r = hero.getBoundingClientRect();
-      glow.style.transform = "translate(" + (e.clientX - r.left) + "px," + (e.clientY - r.top) + "px)";
+      glow.style.transform = "translate3d(" + e.pageX + "px," + e.pageY + "px,0)";
     }, { passive: true });
   }
 
-  /* ---------- Скролл: прогресс, шапка, параллакс монеты, слова манифеста ---------- */
+  /* ---------- Скролл: прогресс, шапка, параллакс монеты ----------
+     Высота документа и вьюпорт кэшируются (чтение scrollHeight каждый
+     кадр = layout-читалка в цикле скролла) и пересчитываются по resize.
+     Слова манифеста переведены на IO + CSS-стаггер (ниже) — на каждый
+     кадр скролла JS больше ничего не считает. */
   var pbar = document.getElementById("pbar");
   var hdr = document.getElementById("hdr");
   var coin = document.getElementById("heroCoin");
-  var mtext = document.getElementById("mtext");
-  var words = mtext ? Array.prototype.slice.call(mtext.querySelectorAll(".w")) : [];
-  var WORDS_N = words.length || 1;
+  var max = 1, vh = window.innerHeight;
+  var measurePage = function () {
+    max = Math.max(1, docEl.scrollHeight - window.innerHeight);
+    vh = window.innerHeight;
+  };
   var ticking = false;
 
   function onScroll() {
@@ -864,42 +900,45 @@ footer{position:relative;margin-top:auto;overflow:hidden;border-top:1px solid rg
     requestAnimationFrame(function () {
       ticking = false;
       var y = window.scrollY || 0;
-      var max = docEl.scrollHeight - window.innerHeight;
-      // прогресс-бар
-      pbar.style.transform = "scaleX(" + (max > 0 ? y / max : 0) + ")";
-      // шапка
+      // прогресс-бар + шапка
+      pbar.style.transform = "scaleX(" + (y / max) + ")";
       hdr.classList.toggle("scrolled", y > 40);
       // параллакс монеты (первые 100vh)
       if (coin) {
-        var vh = window.innerHeight;
         var p = Math.min(1, y / vh);
         if (p < 1) {
           coin.style.transform = "translateY(" + p * 190 + "px) rotate(" + p * 24 + "deg)";
           coin.style.opacity = String(Math.max(0, 1 - p / 0.65));
         }
       }
-      // слова манифеста: старт при подходе, конец на 55% вьюпорта
-      if (words.length && mtext) {
-        var r = mtext.getBoundingClientRect();
-        var vh2 = window.innerHeight;
-        var start = vh2 * 0.9;
-        var end = vh2 * 0.55;
-        var prog = (start - r.top) / (start - end + r.height * 0.35);
-        prog = Math.max(0, Math.min(1, prog));
-        for (var i = 0; i < WORDS_N; i++) {
-          var wp = i / WORDS_N;
-          var we = wp + 1 / WORDS_N;
-          var local = (prog - wp) / (we - wp);
-          local = Math.max(0, Math.min(1, local));
-          words[i].style.opacity = String(0.1 + 0.9 * local);
-          words[i].style.transform = "translateY(" + 8 * (1 - local) + "px)";
-        }
-      }
     });
   }
   window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("resize", onScroll);
+  window.addEventListener("resize", function () { measurePage(); onScroll(); });
+  if ("ResizeObserver" in window) new ResizeObserver(measurePage).observe(docEl);
+  measurePage();
   onScroll();
+  /* вход монеты закончился — снимаем CSS-transition с transform,
+     иначе .hrv-переход сглаживал (тормозил) параллакс на скролле */
+  setTimeout(function () { if (coin) coin.style.transition = "opacity .2s linear"; }, 1200);
+
+  /* ---------- Слова манифеста: один IO-класс + CSS-стаггер ---------- */
+  var mtext = document.getElementById("mtext");
+  if (mtext) {
+    if ("IntersectionObserver" in window) {
+      var mio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            en.target.classList.add("in");
+            mio.unobserve(en.target);
+          }
+        });
+      }, { rootMargin: "0px 0px -18% 0px" });
+      mio.observe(mtext);
+    } else {
+      mtext.classList.add("in");
+    }
+  }
 
   /* ---------- Появление секций (IntersectionObserver, один раз) ---------- */
   var toReveal = Array.prototype.slice.call(document.querySelectorAll(".rv"));
